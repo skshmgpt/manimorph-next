@@ -167,7 +167,7 @@ export default function Chat() {
         setPendingMsg("");
       }
     }
-  }, []);
+  }, [chatId, pendingMsg, handleSubmit, setPendingMsg]);
 
   return (
     <main className="flex flex-col h-screen max-h-screen bg-[#fafafa] group">
@@ -190,7 +190,9 @@ export default function Chat() {
             <div className="flex-1 overflow-y-auto w-full">
               <div className="flex flex-col w-11/12 max-w-3xl mx-auto px-4 py-6 space-y-4">
                 {messages.map((message) => {
-                  const enrichedMsg = messageArtifacts[message.id]
+                  const enrichedMsg: Partial<UIMessage & Message> & {
+                    artifactId: string;
+                  } = messageArtifacts[message.id]
                     ? { ...message, artifactId: messageArtifacts[message.id] }
                     : message;
 

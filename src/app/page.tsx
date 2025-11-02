@@ -10,11 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { SendHorizonalIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useChatStore } from "@/app/stores/useChatStore";
-import { twMerge } from "tailwind-merge";
 import { SidebarIcon } from "@/components/icons/SidebarIcon";
 import { createChat } from "@/lib/db/dbOps";
 import { AppSidebar } from "@/components/AppSidebar";
-import { getInitialMessages } from "./hooks/use-chatHistory";
 import axios from "axios";
 
 export default function Home() {
@@ -24,15 +22,6 @@ export default function Home() {
   const setPendingMsg = useChatStore((state) => state.setPendingMsg);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
-
-  const userChats = useRef([]);
-
-  useEffect(() => {
-    const getUserMsgs = async () => {
-      userChats.current = await axios.get("/api/data/chats");
-    };
-    getUserMsgs();
-  }, []);
 
   const [isOn, setIsOn] = useState(false);
 

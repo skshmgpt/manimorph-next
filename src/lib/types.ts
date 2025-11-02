@@ -12,7 +12,7 @@ export type Message = {
   role: "user" | "assistant" | "data" | "system" | undefined;
   artifactId?: string;
   status: "processing" | "completed" | "failed";
-  createdAt: number;
+  createdAt: Date;
 };
 
 export type Chat = {

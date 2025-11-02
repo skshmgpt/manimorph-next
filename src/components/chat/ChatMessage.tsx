@@ -3,7 +3,7 @@ import { UIMessage } from "ai";
 import { Dispatch, SetStateAction } from "react";
 
 interface ChatMessageProps {
-  message: UIMessage;
+  message: Partial<UIMessage & Message> & { artifactId: string };
   renderMessage: (
     message: Partial<UIMessage & Message>,
     setUiState?: Dispatch<SetStateAction<"code" | "video" | "chat">>,

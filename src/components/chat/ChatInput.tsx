@@ -1,6 +1,4 @@
-import AnimationIcon from "@mui/icons-material/Animation";
 import { Textarea } from "../ui/textarea";
-import { ChatRequestOptions } from "ai";
 import { UIMessage } from "ai";
 import { UseChatHelpers } from "@ai-sdk/react";
 import { memo, useCallback, useMemo } from "react";
@@ -10,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { SendHorizontalIcon, StopCircleIcon } from "lucide-react";
 import { saveMessage } from "@/lib/db/dbOps";
+import { Message } from "@/lib/types";
 
 interface StopButtonProps {
   stop: UseChatHelpers["stop"];
@@ -31,7 +30,10 @@ interface ChatInputProps {
   messagesLen: number;
 }
 
-const createUserMessage = (id: string, text: string): UIMessage => ({
+const createUserMessage = (
+  id: string,
+  text: string,
+): Partial<UIMessage & Message> => ({
   id,
   parts: [{ type: "text", text }],
   role: "user",
@@ -76,7 +78,7 @@ export const ChatInput = ({
 
     const userMsg = createUserMessage(messageId, currentInput.trim());
     await saveMessage(chatId, userMsg);
-    append(userMsg);
+    append(userMsg as UIMessage);
     setInput("");
     adjustHeight(true);
 

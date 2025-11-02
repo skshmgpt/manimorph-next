@@ -29,8 +29,8 @@ export async function TriggerVideoGeneration(
       return { ok: true };
     }
     return { ok: false, error: "unexpected status" };
-  } catch (err: any) {
-    return { ok: false, error: err?.message ?? "unknown error" };
+  } catch (err: unknown) {
+    return { ok: false, error: String(err) ?? "unknown error" };
   }
 }
 
