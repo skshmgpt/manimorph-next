@@ -183,7 +183,7 @@ export default function Chat() {
         )}
       </div>
       <div className="flex flex-row h-full w-full overflow-hidden p-1 pb-2">
-        <AppSidebar isOn={isOn} messages={messages} />
+        <AppSidebar isOn={isOn} />
         <div className="w-full flex flex-row ml-5">
           <div className="h-full w-full flex flex-col overflow-hidden items-center px-1">
             {/* Messages container - scrollable */}
