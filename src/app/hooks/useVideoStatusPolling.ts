@@ -7,6 +7,7 @@ type __job_status = {
   video_url?: string; // Note: using snake_case from backend
   videoUrl?: string; // Also support camelCase
   timestamp?: string;
+  error?: string;
 };
 
 type ApiResponse = {

@@ -12,7 +12,7 @@ export type Message = {
   role: "user" | "assistant" | "data" | "system" | undefined;
   artifactId?: string;
   status: "processing" | "completed" | "failed";
-  createdAt: Date;
+  createdAt: number;
 };
 
 export type Chat = {
@@ -36,4 +36,5 @@ export type VideoArtifact = {
   description?: string;
   status: "pending" | "processing" | "completed" | "failed";
   videoUrl: string | null;
+  errorMessage?: string | null;
 };

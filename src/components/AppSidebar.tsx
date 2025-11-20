@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-export const AppSidebar = ({ isOn }: { isOn: boolean }) => {
+export const AppSidebar = ({
+  isOn,
+  className,
+}: {
+  isOn: boolean;
+  className?: string;
+}) => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -35,7 +41,7 @@ export const AppSidebar = ({ isOn }: { isOn: boolean }) => {
   return (
     <div
       className={twMerge(
-        "relative h-11/12 min-w-3xs rounded-xl p-2 transition-all duration-200 ease-in-out",
+        "relative h-full min-w-3xs rounded-xl p-2 transition-all duration-200 ease-in-out",
         isOn && "-ml-[272px]",
       )}
     >
@@ -46,7 +52,7 @@ export const AppSidebar = ({ isOn }: { isOn: boolean }) => {
         className={twMerge(
           "sidebar-wrapper border-secondary/50 absolute left-0 h-full w-full rounded-lg transition-all duration-200 ease-in-out p-2",
           isOn &&
-            "bg-[#fafafa] hidden md:block border border-border rounded-lg-primary z-10 w-3xs translate-y-10 border pl-6 group-has-[.sidebar-trigger:hover]:ml-[240px] group-has-[.sidebar-wrapper:hover]:ml-[240px]",
+            `bg-[#fafafa] hidden md:block border border-border rounded-lg-primary z-10 w-3xs ${className} border pl-6 group-has-[.sidebar-trigger:hover]:ml-[240px] group-has-[.sidebar-wrapper:hover]:ml-[240px]`,
           !isOn && "ml-[0px] h-full border-transparent bg-transparent",
         )}
       >

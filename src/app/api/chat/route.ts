@@ -19,7 +19,7 @@ export const POST = async (req: Request) => {
       google: {
         thinkingConfig: {
           includeThoughts: true,
-          thinkingBudget: 8000,
+          thinkingBudget: 4000,
         },
       },
     },

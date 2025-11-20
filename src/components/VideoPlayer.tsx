@@ -5,16 +5,15 @@ import { useEffect, useState } from "react";
 import { Loader2, CheckCircle2, XCircle, Video, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getVideoArtifact } from "@/lib/db/dbOps";
+import { SidePanelHeader } from "./ui/sidepanelHeader";
 
 interface VideoPlayerProps {
   artifactId: string;
-  onClose: () => void;
   title?: string;
 }
 
 export function VideoPlayer({
   artifactId,
-  onClose,
   title = "Video Artifact",
 }: VideoPlayerProps) {
   const { data, error, isPolling } = useVideoStatusPolling(artifactId, 2000);
@@ -101,36 +100,19 @@ export function VideoPlayer({
   return (
     <div className="bg-[#fafafa]  rounded-lg overflow-hidden h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 text-black dark:text-white border-b border-gray-700">
-        <div className="flex items-center space-x-2">
-          <Video className="w-4 h-4" />
-          <span className="text-sm font-medium">{title}</span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1 text-xs">
-            {status.icon}
-            <span>{status.text}</span>
-          </div>
-          {videoUrl && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDownload}
-              className="hover:bg-gray-700"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+      <SidePanelHeader
+        title={title}
+        artifactId={artifactId}
+        videoUrl={videoUrl!}
+        isVideo
+      />
 
       {/* Video Content */}
       <div className="flex-1 flex items-center justify-center bg-black p-4">
         {videoUrl ? (
           <video
             controls
-            className="w-full h-full"
+            className="w-full h-1/2 "
             src={videoUrl}
             preload="metadata"
           >

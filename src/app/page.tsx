@@ -14,6 +14,7 @@ import { SidebarIcon } from "@/components/icons/SidebarIcon";
 import { createChat } from "@/lib/db/dbOps";
 import { AppSidebar } from "@/components/AppSidebar";
 import axios from "axios";
+import { useChatTitle } from "./hooks/useChatTitle";
 
 export default function Home() {
   const [inputText, setInputText] = useState("");
@@ -22,6 +23,8 @@ export default function Home() {
   const setPendingMsg = useChatStore((state) => state.setPendingMsg);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
+
+  const { complete } = useChatTitle();
 
   const [isOn, setIsOn] = useState(false);
 
@@ -69,9 +72,11 @@ export default function Home() {
         return;
       }
       // Create a chatId for this new conversation
-      const chatId = nanoid(10);
 
-      await createChat(session.user.id, "New Chat", chatId);
+      const chatId = await createChat(session.user.id, "New Chat");
+      complete(inputText.trim(), {
+        body: { chatId },
+      });
 
       setPendingMsg(inputText);
 
@@ -131,7 +136,9 @@ export default function Home() {
         <div className="group flex min-h-0 w-full flex-1 flex-row gap-4 transition-all duration-200 ease-in-out relative">
           <div className="absolute hidden md:block sidebar-trigger h-full w-5 z-40 bg-transparent" />
 
-          {session && session.user && <AppSidebar isOn={isOn} />}
+          {session && session.user && (
+            <AppSidebar isOn={isOn} className="translate-y-10" />
+          )}
 
           {/* --- Main Content Area --- */}
 
@@ -152,8 +159,8 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <div className="flex-1 flex flex-col items-center overflow-y-auto">
-                <p className="">PLACEHOLDER</p>
+              <div className="flex-1 flex flex-col items-center justify-center overflow-y-auto">
+                <p className="text-3xl p-4">Ask to animate anything</p>
                 <div
                   onKeyDown={handleKeyDown}
                   className="flex flex-row w-10/12 border-border max-w-3xl drop-shadow-sm border rounded-sm items-center p-2"

@@ -18,6 +18,10 @@ const VideoArtifactSchema = new Schema<VideoArtifactDocument>({
     type: String,
     default: null,
   },
+  errorMessage: {
+    type: String,
+    default: null,
+  },
   chatId: {
     type: String,
     required: true,

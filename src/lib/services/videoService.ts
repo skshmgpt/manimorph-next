@@ -1,6 +1,6 @@
 "use server";
 import { nanoid } from "nanoid";
-import { createVideoArtifact, updateVideoArtifactStatus } from "@/lib/db/dbOps";
+import { createVideoArtifact, updateVideoArtifact } from "@/lib/db/dbOps";
 import { TriggerVideoGeneration } from "@/lib/services/videogenJobTriggerService";
 
 export async function startGeneration(
@@ -15,7 +15,7 @@ export async function startGeneration(
   (async () => {
     try {
       const artifact = await createVideoArtifact(artifactId, name, chatId);
-      await updateVideoArtifactStatus(artifactId, "pending");
+      await updateVideoArtifact(artifactId, { status: "processing" });
 
       const res = await TriggerVideoGeneration(
         code,
@@ -25,19 +25,20 @@ export async function startGeneration(
       );
 
       if (!res.ok) {
-        await updateVideoArtifactStatus(artifactId, "failed");
+        await updateVideoArtifact(artifactId, { status: "failed" });
         throw new Error(
           `Failed to trigger video generation for artifact ${artifactId} : ${res.error}`,
         );
       }
 
-      await updateVideoArtifactStatus(artifactId, "processing");
+      await updateVideoArtifact(artifactId, { status: "processing" });
     } catch (err) {
-      await updateVideoArtifactStatus(artifactId, "failed");
+      await updateVideoArtifact(artifactId, { status: "failed" });
       throw err;
     }
   })();
   return artifactId;
 }
 
+// TODO
 export async function cancelGeneration(artifactId: string) {}

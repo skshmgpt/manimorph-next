@@ -18,18 +18,16 @@ export const transformMessageToUIMessage = (message: Message): UIMessage => {
 
 export const getInitialMessages = async (
   chatId: string,
-): Promise<UIMessage[]> => {
+): Promise<[UIMessage[] | null, Error | null]> => {
   try {
-    console.log("Fetching initial messages for chat:", chatId);
     const response = await axios.get<Message[]>(`/api/data/chat/${chatId}`);
 
     if (response.status === 200 && Array.isArray(response.data)) {
-      return response.data.map(transformMessageToUIMessage);
+      return [response.data.map(transformMessageToUIMessage), null];
     }
 
-    return [];
+    return [null, new Error("resp_fmt_err")];
   } catch (error) {
-    console.error("Error fetching chat history:", error);
-    return [];
+    return [null, error as Error];
   }
 };

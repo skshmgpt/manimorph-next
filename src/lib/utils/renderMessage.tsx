@@ -5,7 +5,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { renderWithLatex } from "../renderWithLatex";
-import React, { useEffect, SetStateAction, Dispatch, useState } from "react";
+import React, {
+  useEffect,
+  SetStateAction,
+  Dispatch,
+  useState,
+  useRef,
+} from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { UIMessage } from "ai";
 import { Artifact } from "@/components/chat/Artifact";
@@ -146,6 +152,8 @@ export default function RenderMessage(
   setCode?: Dispatch<SetStateAction<string | null>>,
 ): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const reasoningRef = useRef<HTMLDivElement>(null);
+  const previousReasoningRef = useRef<string>("");
   const { setEditorCode, setVideoArtifact } = useChatStore();
 
   // Extract content and reasoning from parts array
@@ -156,6 +164,34 @@ export default function RenderMessage(
   const content = extractedContent || message.content || "";
   const reasoning = extractedReasoning || message.reasoning || "";
   const role = message.role;
+  const status = message.status;
+
+  // Auto-open reasoning panel when reasoning starts, auto-scroll, and auto-collapse when done
+  useEffect(() => {
+    if (reasoning && reasoning.length > 0) {
+      // Open the panel if reasoning is present and still streaming
+      if (status === "processing") {
+        setIsOpen(true);
+      }
+
+      // Auto-scroll to bottom when reasoning updates
+      if (reasoningRef.current && isOpen) {
+        reasoningRef.current.scrollTop = reasoningRef.current.scrollHeight;
+      }
+
+      // Store current reasoning for comparison
+      previousReasoningRef.current = reasoning;
+    }
+
+    // Auto-collapse when reasoning is complete
+    if (reasoning && status === "completed" && isOpen) {
+      // Add a small delay before collapsing to let user see the final content
+      const timer = setTimeout(() => {
+        setIsOpen(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [reasoning, status, isOpen]);
 
   const { explanation, breakdown, code } = parseStreamingManimResponse(content);
   const { title, concept, steps, formula } = parseBreakdownXML(
@@ -176,16 +212,16 @@ export default function RenderMessage(
 
   function renderReasoning(reasoning: string) {
     return (
-      <div className="mb-6 transition-all duration-500 ease-out">
+      <div className="transition-all duration-500 ease-out">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger className="flex items-center space-x-2 text-zinc-400 hover:text-zinc-200 transition-all duration-300 ease-out group w-full text-left">
-            <div className="flex items-center space-x-2 py-2 px-3 rounded-md hover:bg-zinc-800/50 transition-all duration-200 group-hover:shadow-sm">
+          <CollapsibleTrigger className="flex items-center space-x-2 transition-all duration-300 ease-out w-full text-left">
+            <div className="flex items-center text-center space-x-2 py-2 px-3 rounded-md transition-all duration-200 group/thinking">
               <div
-                className={`transform transition-all duration-300 ease-out ${isOpen ? "rotate-0 text-blue-400" : "-rotate-90 text-zinc-500"}`}
+                className={`transform transition-all duration-300 group-hover/thinking:text-black text-zinc-500 ease-out ${isOpen ? "rotate-0" : "-rotate-90"}`}
               >
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-4 w-4 font-bold" />
               </div>
-              <span className="text-sm font-medium group-hover:text-zinc-100">
+              <span className="text-sm font-normal text-zinc-500">
                 Thinking
               </span>
               <div className="flex-1 h-px bg-gradient-to-r from-zinc-600 via-zinc-700 to-transparent ml-2 opacity-60 group-hover:opacity-80 transition-opacity duration-200"></div>
@@ -194,13 +230,13 @@ export default function RenderMessage(
 
           <CollapsibleContent className="overflow-hidden transition-all duration-500 ease-out data-[state=closed]:animate-fade-out-slide data-[state=open]:animate-fade-in-slide">
             <div className="transform transition-all duration-500 ease-out">
-              <div className="mt-3 mb-4 mx-3">
-                <div className="p-4 bg-gradient-to-br from-zinc-900/90 to-zinc-800/70 border border-zinc-700/60 rounded-lg backdrop-blur-sm shadow-xl ring-1 ring-zinc-600/20">
-                  <div className="border-l-3 border-gradient-to-b from-blue-400 to-blue-600 pl-4">
-                    <div className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap overflow-wrap-anywhere">
-                      {renderWithLatex(reasoning as string)}
-                    </div>
-                  </div>
+              <div className="border-l-3 border-gradient-to-b from-blue-400 to-blue-600 pl-4">
+                <div
+                  ref={reasoningRef}
+                  className="text-zinc-500 text-sm leading-relaxed whitespace-pre-wrap overflow-y-auto max-h-44 scroll-smooth font-normal"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {renderWithLatex(reasoning as string)}
                 </div>
               </div>
             </div>
@@ -209,6 +245,7 @@ export default function RenderMessage(
       </div>
     );
   }
+
   // For user messages, just render as before
   if (role === "user") {
     return (
@@ -221,6 +258,9 @@ export default function RenderMessage(
     );
   }
 
+  // ALWAYS show "Manimorph" header for assistant messages, even if content is empty
+  // This ensures it shows immediately when user submits
+
   // If only <plainResponse>
   if (content.includes("<plainResponse>")) {
     const plain = content
@@ -230,7 +270,6 @@ export default function RenderMessage(
     return (
       <>
         <div className="mb-4 p-3 rounded-lg break-words text-sm">
-          <div className="font-bold mb-1">Manimorph</div>
           {reasoning && renderReasoning(reasoning)}
           <div className="whitespace-pre-wrap overflow-wrap-anywhere">
             {renderWithLatex(plain)}
@@ -242,8 +281,8 @@ export default function RenderMessage(
 
   // Render streaming breakdown
   return (
-    <div className="mb-4 p-3 rounded-lg break-words text-sm">
-      <div className="font-bold mb-2 flex items-center">Manimorph</div>
+    <div className="mb-4 rounded-lg break-words text-sm">
+      {/* ALWAYS show header immediately */}
 
       {reasoning && renderReasoning(reasoning)}
 
@@ -254,23 +293,28 @@ export default function RenderMessage(
         </div>
       )}
 
+      {/* Show loading indicator if no content yet */}
+      {!explanation && !breakdown && !code && status === "processing" && (
+        <div className="text-zinc-500 text-sm italic animate-pulse">
+          Thinking...
+        </div>
+      )}
+
       {/* Artifact: Breakdown visualization */}
       {breakdown && (
-        <div className="bg-[#121214] border border-[#2A2A2C] rounded-lg p-4 shadow-lg animate-fadeIn mb-4">
+        <div className="rounded-lg p-4 animate-fadeIn mb-4">
           <h3 className="text-black dark:text-white font-bold mb-2 flex items-center">
             {title || "Animation Breakdown"}
           </h3>
-          {concept && (
-            <div className="mb-2 text-[#B0B0B0] italic">{concept}</div>
-          )}
+          {concept && <div className="mb-2 italic">{concept}</div>}
 
           <ol className="space-y-2 ml-1 mb-2">
             {steps.map((step, i) => (
               <li key={i} className="flex items-start group pb-1">
-                <div className="flex-shrink-0 h-5 w-5 rounded-full bg-gray-200 flex items-center justify-center mr-2 mt-0.5 group-hover:bg-white transition-colors text-black">
+                <div className="flex-shrink-0 h-5 w-5 flex items-center justify-center mr-2 mt-0.5">
                   <span className="text-xs font-medium">{i + 1}</span>
                 </div>
-                <span className="text-black dark:text-white group-hover:text-white transition-colors">
+                <span className="">
                   <b>{step.action}</b>: {renderWithLatex(step.description)}
                   {step.purpose && (
                     <span className="ml-2 text-xs text-[#A0FFA0]">
